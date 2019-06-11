@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image, TextInput, Dimensions, ImageBackground, TouchableOpacity, ActivityIndicator, ToastAndroid, ScrollView, BackHandler } from 'react-native';
+import { StyleSheet, Text, View, Image, TextInput, Dimensions, ImageBackground, TouchableOpacity, ActivityIndicator, ToastAndroid, ScrollView, BackHandler, AsyncStorage } from 'react-native';
 import logo from './images/name.png';
 import loginbackground from './images/loginbackground.png';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -10,6 +10,9 @@ const { width: WIDTH } = Dimensions.get('window');
 export default class Numberin extends React.Component {
   constructor(props) {
     super(props);
+
+    this.next = () => { };
+
     this.state = {
       email: "",
       password: "",
@@ -18,7 +21,20 @@ export default class Numberin extends React.Component {
       birthday: null,
       loading: false,
       passwordError: false,
-      informationError: false
+      informationError: false,
+      facebookPicture: "",
+      facebookId: "",
+    }
+
+    var fbdata = this.props.navigation.getParam('facebookData');
+
+    if (fbdata) {
+      this.state.email = fbdata.email;
+      this.state.name = fbdata.name;
+      this.state.facebookPicture = fbdata.picture;
+      this.state.facebookId = fbdata.id;
+
+      this.next = () => this.props.navigation.getParam('next')();
     }
   }
 
@@ -41,20 +57,33 @@ export default class Numberin extends React.Component {
 
     birthday = this.state.birthday.split("/")[2] + '-' + this.state.birthday.split("/")[1] + '-' + this.state.birthday.split("/")[0];
 
+    var data = {
+      email: this.state.email,
+      password: this.state.password,
+      name: this.state.name,
+      birthday: birthday,
+      facebookPicture: this.state.facebookPicture,
+      facebookId: this.state.facebookId,
+    };
+
+    console.log(data);
+
     fetch("http://autosavestudio.com/numberin/user/registerUser.php", {
       method: 'POST',
-      body: JSON.stringify({
-        email: this.state.email,
-        password: this.state.password,
-        name: this.state.name,
-        birthday: birthday
-      })
+      body: JSON.stringify(data)
     })
       .then((response) => response.json())
       .then((response) => {
         if (response.result == '1') {
           alert("Um email foi enviado para " + this.state.email + " com o código de ativação.");
           this.props.navigation.navigate('Login');
+        } else if (response.result == '2') {
+          AsyncStorage.setItem('email', this.state.email).then(() => {
+            AsyncStorage.setItem('password', this.state.password).then(() => {
+              this.next().catch((e) => console.log(e));
+              this.props.navigation.goBack();
+            });
+          });
         } else {
           ToastAndroid.show('Ops, ocorreu algum erro. Tente novamente.', ToastAndroid.LONG);
         }
@@ -206,7 +235,7 @@ export default class Numberin extends React.Component {
           left: 0,
           top: 0,
           padding: 8,
-          paddingLeft: 10,
+          paddingLeft: 15,
           width: 50,
           backgroundColor: 'transparent'
         }} onPress={() => this.props.navigation.goBack()}>

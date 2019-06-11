@@ -7,7 +7,7 @@ import FBSDK from 'react-native-fbsdk';
 import { facebookService } from './FacebookService';
 
 const { width: WIDTH } = Dimensions.get('window');
-const { AccessToken } = FBSDK;
+const { AccessToken, LoginButton } = FBSDK;
 
 export default class Numberin extends React.Component {
   constructor(props) {
@@ -51,6 +51,7 @@ export default class Numberin extends React.Component {
     } catch (error) {
       this.setState({ loading: false });
     }
+
     return true;
   };
 
@@ -80,7 +81,7 @@ export default class Numberin extends React.Component {
             this.props.navigation.navigate('Search', {
               userName: responseJson.name,
               userPhone: responseJson.phone,
-              userPhoto: "http://autosavestudio.com/numberin/user/compressed/" + responseJson.picture,
+              userPhoto: responseJson.picture.includes("://") ? responseJson.picture : "http://autosavestudio.com/numberin/user/compressed/" + responseJson.picture,
               userId: responseJson.id,
               session: responseJson.sessiontoken,
               openEditUser: openEditUser
@@ -102,6 +103,26 @@ export default class Numberin extends React.Component {
 
   _registrar() {
     this.props.navigation.navigate('Register');
+  }
+
+  initUser(token) {
+    console.log("Token: " + token);
+
+    fetch('https://graph.facebook.com/v2.5/me?fields=email,name&access_token=' + token)
+      .then((response) => response.json())
+      .then((json) => {
+        let user = {
+          name: json.name,
+          id: json.id,
+          email: json.email,
+          picture: "https://graph.facebook.com/" + json.id + "/picture",
+        };
+
+        this.props.navigation.navigate('Register', { facebookData: user, next: () => _retrieveData() });
+      })
+      .catch((e) => {
+        console.log(e);
+      })
   }
 
   componentDidMount() {
@@ -186,10 +207,7 @@ export default class Numberin extends React.Component {
 
         <TouchableOpacity style={styles.btnFacebookLogin}
           onPress={async () => {
-            await facebookService.makeLogin();
-            facebookService.fetchProfile().then((data) => {
-              console.log(data);
-            }).catch(e => console.error(e));
+            facebookService.makeLogin((token) => this.initUser(token));
           }}>
           <Icon name={'logo-facebook'} size={23} color={'white'} style={styles.inputIcon} />
           <Text style={styles.textBtnLogin}>Entrar com Facebook</Text>

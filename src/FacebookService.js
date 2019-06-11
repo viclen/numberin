@@ -4,38 +4,35 @@ import FBSDK from 'react-native-fbsdk'
 const { AccessToken, GraphRequest, GraphRequestManager, LoginManager } = FBSDK
 
 class FacebookService {
-    constructor() {
-        this.requestManager = new GraphRequestManager()
-    }
-
     makeLogin(callback) {
         LoginManager.logInWithReadPermissions([
             "public_profile",
             "email"
-        ],
-            (result) => {
-                if (result.isCancelled) {
+        ]).then((result) => {
+            if (result.isCancelled) {
 
-                } else {
-                    console.log(result);
-                    AccessToken.getCurrentAccessToken()
-                        .then((data) => {
-                            console.log(data)
-                        })
-                        .catch(error => {
-                            console.log(error)
-                        });
-                }
+            } else {
+                console.log(result);
+                AccessToken.getCurrentAccessToken()
+                    .then((data) => {
+                        const { accessToken } = data;
+                        callback(accessToken);
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            }
 
-                callback();
-            },
-            (error) => console.log(error));
+        }, (error) => console.log(error))
+        .catch((e) => {
+            console.log(e);
+        });
     }
 
     async fetchProfile(callback) {
         return new Promise((resolve, reject) => {
             const request = new GraphRequest(
-                '/me',
+                '/me?fields=email,name,friends',
                 null,
                 (error, result) => {
                     if (result) {
@@ -48,7 +45,11 @@ class FacebookService {
                 }
             )
 
-            this.requestManager.addRequest(request).start()
+            try {
+                new GraphRequestManager().addRequest(request).start()
+            } catch (error) {
+                console.log(error)
+            }
         })
     }
 }
