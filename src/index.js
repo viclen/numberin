@@ -4,6 +4,7 @@ import UserView from './UserView';
 import Register from './Register';
 import EditUser from './EditUser';
 import Notifications from './Notifications';
+import EditPassword from './EditPassword';
 
 import { createStackNavigator } from 'react-navigation';
 
@@ -14,7 +15,8 @@ const StackNavigator = createStackNavigator(
     UserView: UserView,
     Register: Register,
     Notifications: Notifications,
-    EditUser: EditUser
+    EditUser: EditUser,
+    EditPassword: EditPassword
   },
   {
     initialRouteName: 'Login',

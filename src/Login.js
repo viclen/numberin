@@ -26,7 +26,6 @@ export default class Numberin extends React.Component {
   }
 
   _storeData = async () => {
-    console.log("Token: " + this.state.session);
     try {
       await AsyncStorage.setItem('id', this.state.id);
       await AsyncStorage.setItem('email', this.state.email);
@@ -42,6 +41,11 @@ export default class Numberin extends React.Component {
     try {
       const email = await AsyncStorage.getItem('email');
       const password = await AsyncStorage.getItem('password');
+      const facebookId = await AsyncStorage.getItem('facebookId');
+      if(facebookId){
+        this._fazerLoginFacebook(facebookId);
+        return;
+      }
       if (email.length && password.length) {
         this.setState({ email, password });
         this._fazerLogin();
@@ -101,13 +105,51 @@ export default class Numberin extends React.Component {
       });
   }
 
+  _fazerLoginFacebook(facebookId){
+    fetch("http://autosavestudio.com/numberin/login.php", {
+          method: 'POST',
+          body: JSON.stringify({
+            facebookId: facebookId
+          })
+        })
+          .then((response) => response.json())
+          .then((responseJson) => {
+            if (responseJson.id == -2){
+              this.props.navigation.navigate('Register', { facebookData: user, next: () => _retrieveData() });
+            }else{
+              this.setState({ passwordError: false });
+              if (this.state.checked) {
+                this.setState({ session: responseJson.sessiontoken, id: responseJson.id });
+                AsyncStorage.setItem("facebookId", facebookId);
+                this._storeData();
+              }
+              setTimeout(() => {
+                if (responseJson.lastlogin) {
+                  openEditUser = false;
+                } else {
+                  openEditUser = true;
+                }
+                this.props.navigation.navigate('Search', {
+                  userName: responseJson.name,
+                  userPhone: responseJson.phone,
+                  userPhoto: responseJson.picture.includes("://") ? responseJson.picture : "http://autosavestudio.com/numberin/user/compressed/" + responseJson.picture,
+                  userId: responseJson.id,
+                  session: responseJson.sessiontoken,
+                  openEditUser: openEditUser
+                });
+                this.setState({ loading: false });
+              }, 1500);
+            }
+        }).catch((e) => {
+          console.log(e);
+        });
+  }
+
   _registrar() {
     this.props.navigation.navigate('Register');
   }
 
   initUser(token) {
-    console.log("Token: " + token);
-
     fetch('https://graph.facebook.com/v2.5/me?fields=email,name&access_token=' + token)
       .then((response) => response.json())
       .then((json) => {
@@ -118,7 +160,7 @@ export default class Numberin extends React.Component {
           picture: "https://graph.facebook.com/" + json.id + "/picture",
         };
 
-        this.props.navigation.navigate('Register', { facebookData: user, next: () => _retrieveData() });
+        this._fazerLoginFacebook(json.id);
       })
       .catch((e) => {
         console.log(e);

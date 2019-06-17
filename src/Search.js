@@ -24,6 +24,9 @@ export default class Search extends React.Component {
       session: this.props.navigation.getParam("session"),
       notCount: 0,
     }
+    
+    console.log("Token: " + this.state.session);
+
     this.watchId = "";
     this.searchInput = null;
     this.lastUpdate = 0;
@@ -31,6 +34,10 @@ export default class Search extends React.Component {
   }
 
   _update(search) {
+    if(!this.mounted){
+        return;
+    }
+    
     search = search || "";
 
     setTimeout(() => this._update(), 10000);
@@ -156,11 +163,12 @@ export default class Search extends React.Component {
         ],
         { cancelable: false });
     }
-    this.props.navigation.dismissAllModals();
+    // this.props.navigation.dismissAllModals();
     return true;
   }
 
   componentDidMount() {
+    this.mounted = true;
     BackHandler.addEventListener('hardwareBackPress', this._backPressed);
 
     if (this.props.navigation.getParam("openEditUser")) {
@@ -172,6 +180,10 @@ export default class Search extends React.Component {
   }
 
   async _getNotCount() {
+    if(!this.mounted){
+        return;
+    }
+
     var count = await AsyncStorage.getItem("NotificationCount");
 
     this.setState({ notCount: count });
@@ -180,6 +192,7 @@ export default class Search extends React.Component {
   }
 
   componentWillUnmount() {
+    this.mounted = false;
     navigator.geolocation.clearWatch(this.watchId);
   }
 

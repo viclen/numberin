@@ -11,8 +11,6 @@ export default class Numberin extends React.Component {
   constructor(props) {
     super(props);
 
-    this.next = () => { };
-
     this.state = {
       email: "",
       password: "",
@@ -39,6 +37,7 @@ export default class Numberin extends React.Component {
   }
 
   _fazerRegistro() {
+    this.setState({ informationError: false, passwordError: true });
     this.setState({ loading: true });
 
     if (this.state.password != this.state.repeatPassword) {
@@ -55,7 +54,12 @@ export default class Numberin extends React.Component {
       this.setState({ informationError: false });
     }
 
-    birthday = this.state.birthday.split("/")[2] + '-' + this.state.birthday.split("/")[1] + '-' + this.state.birthday.split("/")[0];
+    try{
+      birthday = this.state.birthday.split("/")[2] + '-' + this.state.birthday.split("/")[1] + '-' + this.state.birthday.split("/")[0];
+    }catch(e){
+      this.setState({ loading: false, informationError: true });
+      return;
+    }
 
     var data = {
       email: this.state.email,
@@ -65,8 +69,6 @@ export default class Numberin extends React.Component {
       facebookPicture: this.state.facebookPicture,
       facebookId: this.state.facebookId,
     };
-
-    console.log(data);
 
     fetch("http://autosavestudio.com/numberin/user/registerUser.php", {
       method: 'POST',
@@ -80,8 +82,7 @@ export default class Numberin extends React.Component {
         } else if (response.result == '2') {
           AsyncStorage.setItem('email', this.state.email).then(() => {
             AsyncStorage.setItem('password', this.state.password).then(() => {
-              this.next().catch((e) => console.log(e));
-              this.props.navigation.goBack();
+              this.props.navigation.navigate('Login');
             });
           });
         } else {

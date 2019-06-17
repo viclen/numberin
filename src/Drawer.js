@@ -85,6 +85,10 @@ export default class Drawer extends Component {
     };
 
     _updateNotifications() {
+        if(!this.mounted){
+            return;
+        }
+
         setTimeout(() => this._updateNotifications(), 2000);
 
         let url = "http://autosavestudio.com/numberin/user/getNotifications.php?counter=1&session=" + this.props.session;
@@ -104,36 +108,16 @@ export default class Drawer extends Component {
                     if (response.count > lastNumber) {
                         Vibration.vibrate([0, 300, 150, 300]);
                     }
+                }).catch((e) => {
                 });
         } catch (error) {
         }
     }
 
-    // _getLastNotification() {
-    //     let url = "http://autosavestudio.com/numberin/user/getNotifications.php?session=" + this.props.session;
-    //     fetch(url)
-    //         .then((response) => response.json())
-    //         .then((response) => {
-    //             if (response.length > 0) {
-    //                 item = response[0];
-    //                 var msg = (item.type == 'asked') ? `${item.name} pediu para ver seus dados.` : `${item.name} compartilhou dados com você.`;
-
-    //                 if (msg != this.lastNotification) {
-    //                     this.lastNotification = msg;
-
-    //                     PushNotification.localNotification({
-    //                         id: '123numberin',
-    //                         autoCancel: true, // (optional) default: true
-    //                         visibility: "public", // (optional) set notification visibility, default: private
-    //                         message: msg, // (required)
-    //                     });
-    //                 }
-    //             }
-    //         }).catch((e) => {
-    //         });
-    // }
-
     _getImage() {
+        if(!this.mounted){
+            return;
+        }
         setTimeout(() => this._getImage(), 10000);
 
         var url = "http://autosavestudio.com/numberin/user/me.php?session=" + this.props.session;
@@ -146,18 +130,30 @@ export default class Drawer extends Component {
                     number: response.phone
                 }
 
-                if (this.state.picture.split("/images/")[1] != response.picture.split("/images/")[1]) {
-                    obj.picture = "http://autosavestudio.com/numberin/user/compressed/" + response.picture.split("/images/")[1];
+                if (this.state.picture.includes("facebook.com")) {
+                    obj.picture = this.state.picture;
                     AsyncStorage.setItem("DrawerPicture", obj.picture);
+                } else {
+                    if (this.state.picture.split("/images/")[1] != response.picture.split("/images/")[1]) {
+                        obj.picture = "http://autosavestudio.com/numberin/user/compressed/" + response.picture.split("/images/")[1];
+                        AsyncStorage.setItem("DrawerPicture", obj.picture);
+                    }
                 }
 
                 this.setState(obj);
                 AsyncStorage.setItem("DrawerName", obj.name);
                 AsyncStorage.setItem("DrawerNumber", obj.number);
+            }).catch((e) => {
+                console.log(this.props.session);
             });
     }
 
+    componentWllUnmount(){
+        this.mounted = false;
+    }
+
     componentDidMount() {
+        this.mounted = true;
         this._start();
     }
 
@@ -208,7 +204,7 @@ export default class Drawer extends Component {
                             source={{ uri: this.state.picture }}
                             style={styles.photo}
                         />
-                        <Text style={styles.userName}>{this.state.name}</Text>
+                        <Text style={styles.userName}>{(this.state.name) ? this.state.name.split(" ")[0] : ""}</Text>
                         <Text style={styles.userNumber}>{this.state.number}</Text>
                         <TouchableOpacity style={styles.closeButton} onPress={() => this.close()}>
                             <Icon name={'md-close'} color={'black'} size={27} />
@@ -250,7 +246,12 @@ export default class Drawer extends Component {
                             <Text style={[styles.menuItemText, { color: this.props.atual == 'Notifications' ? "black" : "rgb(100,100,100)" }]}>Notificações</Text>
                         </TouchableOpacity>
                         <View style={styles.menuDivider}></View>
-                        <TouchableOpacity onPress={() => alert("Ainda não disponível")} style={styles.menuItem}>
+                        <TouchableOpacity onPress={() => {
+                            this.props.navigation.navigate("EditPassword", {
+                                onGoBack: () => BackHandler.addEventListener('hardwareBackPress', this.props.backPressed)
+                            })
+                            this.close();
+                        }} style={styles.menuItem}>
                             <Icon name={'ios-lock'} style={styles.menuIcon} />
                             <Text style={styles.menuItemText}>Mudar senha</Text>
                         </TouchableOpacity>

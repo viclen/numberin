@@ -136,6 +136,7 @@ export default class Numberin extends React.Component {
             .then(response => response.json())
             .then(response => {
                 birthday = response.birthday.split("-")[2] + '/' + response.birthday.split("-")[1] + '/' + response.birthday.split("-")[0];
+                console.log(response.picture);
 
                 var permissions = response.permissions;
                 var name = false;
