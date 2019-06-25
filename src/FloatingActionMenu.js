@@ -107,7 +107,7 @@ export default class FloatingActionMenu extends React.Component {
                 style={[styles.container, {
                     top: this.state.position.interpolate({
                         inputRange: [0, 1],
-                        outputRange: [-100, 50],
+                        outputRange: [-150, 50],
                     }),
                     scaleY: this.state.position,
                 }]}>
