@@ -88,13 +88,15 @@ export default class FloatingActionMenu extends React.Component {
 
     allowPermission(){
         let url = 'http://autosavestudio.com/numberin/user/allowPermission.php?session=' + this.props.session + '&id=' + this.props.id + '&permission=111111';
-        console.log(url)
+        console.log(url);
         fetch(url)
+        .then((r) => r.text())
         .then((r) => {
-            if(!r.text()._55.includes("you"))
+            if(!r.includes("you")){
                 ToastAndroid.show("Você enviou seus dados para " + this.props.name + ".", ToastAndroid.LONG);
+            }
         }).catch((error) => {
-            ToastAndroid.show("Tente novamente");
+            ToastAndroid.show("Tente novamente", ToastAndroid.LONG);
         });
     }
 

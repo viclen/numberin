@@ -77,6 +77,7 @@ export default class Drawer extends Component {
         try {
             await AsyncStorage.setItem('email', '');
             await AsyncStorage.setItem('password', '');
+            await AsyncStorage.setItem('facebookId', '');
         } catch (error) {
             // Error saving data
         }
@@ -145,6 +146,7 @@ export default class Drawer extends Component {
                 AsyncStorage.setItem("DrawerNumber", obj.number);
             }).catch((e) => {
                 console.log(this.props.session);
+                this.mounted = false;
             });
     }
 

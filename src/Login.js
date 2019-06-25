@@ -105,7 +105,7 @@ export default class Numberin extends React.Component {
       });
   }
 
-  _fazerLoginFacebook(facebookId){
+  _fazerLoginFacebook(facebookId, user){
     fetch("http://autosavestudio.com/numberin/login.php", {
           method: 'POST',
           body: JSON.stringify({
@@ -116,6 +116,7 @@ export default class Numberin extends React.Component {
           .then((responseJson) => {
             if (responseJson.id == -2){
               this.props.navigation.navigate('Register', { facebookData: user, next: () => _retrieveData() });
+              this.setState({ loading: false });
             }else{
               this.setState({ passwordError: false });
               if (this.state.checked) {
@@ -160,7 +161,7 @@ export default class Numberin extends React.Component {
           picture: "https://graph.facebook.com/" + json.id + "/picture",
         };
 
-        this._fazerLoginFacebook(json.id);
+        this._fazerLoginFacebook(json.id, user);
       })
       .catch((e) => {
         console.log(e);
@@ -249,6 +250,7 @@ export default class Numberin extends React.Component {
 
         <TouchableOpacity style={styles.btnFacebookLogin}
           onPress={async () => {
+            this.setState({ loading: true });
             facebookService.makeLogin((token) => this.initUser(token));
           }}>
           <Icon name={'logo-facebook'} size={23} color={'white'} style={styles.inputIcon} />

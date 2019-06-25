@@ -58,17 +58,19 @@ export default class Numberin extends React.Component {
 
         birthday = this.state.birthday.split("/")[2] + '-' + this.state.birthday.split("/")[1] + '-' + this.state.birthday.split("/")[0];
 
+        var data = {
+            name: this.state.name,
+            birthday: birthday,
+            imagestring: imagestring,
+            about: this.state.about,
+            permissions: permissions,
+            phone: this.state.phone,
+            gender: this.state.gender
+        };
+
         fetch("http://autosavestudio.com/numberin/user/updateUser.php?session=" + this.state.session, {
             method: 'POST',
-            body: JSON.stringify({
-                name: this.state.name,
-                birthday: birthday,
-                imagestring: imagestring,
-                about: this.state.about,
-                permissions: permissions,
-                phone: this.state.phone,
-                gender: this.state.gender
-            })
+            body: JSON.stringify(data)
         })
             .then((response) => response.json())
             .then((response) => {

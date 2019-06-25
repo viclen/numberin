@@ -39,14 +39,18 @@ export default class Numberin extends React.Component {
             newpassword: this.state.newPassword
         };
 
+        console.log(data);
+
         fetch("http://autosavestudio.com/numberin/alterarsenha.php?session=" + this.state.session, {
             method: 'POST',
             body: JSON.stringify(data)
         })
             .then((response) => response.json())
             .then((response) => {
+                console.log(response);
                 if (response.result == '1') {
                     this.props.navigation.goBack();
+                    ToastAndroid.show('Senha alterada com sucesso.', ToastAndroid.LONG);
                 } else {
                     ToastAndroid.show('Ops, ocorreu algum erro. Tente novamente.', ToastAndroid.LONG);
                 }
